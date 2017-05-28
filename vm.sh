@@ -12,6 +12,8 @@
 # or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
 # License for more details.
 
+ARCH=$(uname -m)
+
 RAPIDO_DIR="`dirname $0`"
 . "${RAPIDO_DIR}/runtime.vars"
 
@@ -27,6 +29,11 @@ kernel_img="${KERNEL_SRC}/arch/x86/boot/bzImage"
 [ -n "$MAC_ADDR1" ] || _fail "MAC_ADDR1 not configured in rapido.conf"
 [ -n "$MAC_ADDR2" ] || _fail "MAC_ADDR2 not configured in rapido.conf"
 
+qemu=qemu-system
+if [ $ARCH = "aarch64" ]; then
+qemu=qemu-system-aarch64
+fi
+
 set -x
 
 # cut_ script may have specified some parameters for qemu (9p share)
@@ -41,7 +48,7 @@ else
 	kern_ip_addr1="${IP_ADDR1}:::255.255.255.0:${HOSTNAME1}"
 fi
 
-pgrep -a qemu-system | grep -q mac=${MAC_ADDR1} && vm1_running=1
+pgrep -a ${qemu} | grep -q mac=${MAC_ADDR1} && vm1_running=1
 if [ -z "$vm1_running" ]; then
 	$QEMU_KVM_BIN \
 		-smp cpus=2 -m 512 \
@@ -62,7 +69,7 @@ else
 	kern_ip_addr2="${IP_ADDR2}:::255.255.255.0:${HOSTNAME2}"
 fi
 
-pgrep -a qemu-system | grep -q mac=${MAC_ADDR2} && vm2_running=1
+pgrep -a ${qemu} | grep -q mac=${MAC_ADDR2} && vm2_running=1
 if [ -z "$vm2_running" ]; then
 	$QEMU_KVM_BIN \
 		-smp cpus=2 -m 512 \
